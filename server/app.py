@@ -18,6 +18,7 @@ import os
 import threading
 from fastapi import FastAPI, HTTPException, Query, Body
 from typing import Optional
+from fastapi import Request
 from pydantic import BaseModel
 
 from models import LogObservation, AnalysisAction, StepReward, EnvState
@@ -213,17 +214,18 @@ def tasks():
 
 # /reset
 
-class ResetRequest(BaseModel):
-    task_id: str = "easy"
-
-
 @app.post("/reset", response_model=LogObservation)
-def reset(req: Optional[ResetRequest] = Body(default=None)):
-    if req is None:
-        req = ResetRequest()
-    env = get_env(req.task_id)
+async def reset(request: Request):
+    try:
+        body = await request.json()
+    except:
+        body = {}
+
+    task_id = body.get("task_id", "easy")
+
+    env = get_env(task_id)
     obs = env.reset()
-    last_grader[req.task_id] = None
+    last_grader[task_id] = None
     return obs
 
 
