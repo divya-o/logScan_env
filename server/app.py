@@ -54,7 +54,96 @@ def get_env(task_id):
 def health():
     return {"status": "healthy", "version": "1.0.0", "tasks": list(envs.keys())}
 
-
+# /health
+@app.get("/health")
+def health():
+    return {"status": "healthy", "version": "1.0.0", "tasks": list(envs.keys())}
+ 
+ 
+# /metadata
+@app.get("/metadata")
+def metadata():
+    return {
+        "name": "Log Analysis + Incident Root Cause Agent",
+        "description": (
+            "A multi-step RL environment where an agent navigates system logs "
+            "to detect anomalies, classify errors, identify root causes, and suggest fixes."
+        ),
+        "version": "1.0.0",
+        "tasks": list(envs.keys()),
+    }
+ 
+ 
+# /schema
+@app.get("/schema")
+def schema():
+    return {
+        "action": {
+            "type": "object",
+            "properties": {
+                "action_type":            {"type": "string"},
+                "target_index":           {"type": "integer"},
+                "filter_level":           {"type": "string"},
+                "search_keyword":         {"type": "string"},
+                "error_type":             {"type": "string"},
+                "root_cause_line_id":     {"type": "integer"},
+                "root_cause_explanation": {"type": "string"},
+                "fix_suggestion":         {"type": "string"},
+            },
+            "required": ["action_type"],
+        },
+        "observation": {
+            "type": "object",
+            "properties": {
+                "task_id":      {"type": "string"},
+                "log_lines":    {"type": "array", "items": {"type": "string"}},
+                "window_start": {"type": "integer"},
+                "total_lines":  {"type": "integer"},
+                "instruction":  {"type": "string"},
+                "steps_taken":  {"type": "integer"},
+                "max_steps":    {"type": "integer"},
+                "done":         {"type": "boolean"},
+            },
+        },
+        "state": {
+            "type": "object",
+            "properties": {
+                "task_id":             {"type": "string"},
+                "scenario_id":         {"type": "string"},
+                "steps_taken":         {"type": "integer"},
+                "max_steps":           {"type": "integer"},
+                "done":                {"type": "boolean"},
+                "cumulative_reward":   {"type": "number"},
+                "anomaly_done":        {"type": "boolean"},
+                "classification_done": {"type": "boolean"},
+                "root_cause_done":     {"type": "boolean"},
+                "fix_done":            {"type": "boolean"},
+            },
+        },
+    }
+ 
+ 
+# /mcp - JSON-RPC 2.0
+@app.post("/mcp")
+async def mcp(payload: dict = None):
+    if payload is None:
+        payload = {}
+    method = payload.get("method", "")
+    req_id = payload.get("id", 1)
+    if method == "tools/list":
+        result = {
+            "tools": [
+                {"name": "reset",  "description": "Reset the environment"},
+                {"name": "step",   "description": "Submit an action"},
+                {"name": "state",  "description": "Get environment state"},
+                {"name": "grader", "description": "Get final episode score"},
+            ]
+        }
+    elif method == "tools/call":
+        result = {"message": "Use REST endpoints /reset /step /state /grader directly."}
+    else:
+        result = {"message": f"Unknown method: {method}"}
+    return {"jsonrpc": "2.0", "id": req_id, "result": result}
 
 # /tasks - task list + action schema
 
@@ -128,7 +217,9 @@ class ResetRequest(BaseModel):
 
 
 @app.post("/reset", response_model=LogObservation)
-def reset(req: ResetRequest):
+def reset(req: ResetRequest=None):
+    if req is None:
+        req = ResetRequest()
     env = get_env(req.task_id)
     obs = env.reset()
     last_grader[req.task_id] = None
@@ -212,3 +303,13 @@ def baseline():
         return {**result, "cached": False}
     except Exception as e:
         raise HTTPException(500, f"Baseline failed: {e}")
+
+def main():
+    import uvicorn
+    host = os.environ.get("HOST", "0.0.0.0")
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("server.app:app", host=host, port=port, reload=False)
+ 
+ 
+if __name__ == "__main__":
+    main()
