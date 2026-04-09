@@ -16,7 +16,7 @@ env/
 #secrets
 .env
 *.env
-.env.*
+
 
 #scores
 inference_scores.json
@@ -27,6 +27,3 @@ inference_scores.json
 
 .DS_Store
 Thumbs.db
-
-# uv
-uv.lock
