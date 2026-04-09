@@ -16,7 +16,8 @@ Run locally:
 
 import os
 import threading
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Body
+from typing import Optional
 from pydantic import BaseModel
 
 from models import LogObservation, AnalysisAction, StepReward, EnvState
@@ -217,7 +218,7 @@ class ResetRequest(BaseModel):
 
 
 @app.post("/reset", response_model=LogObservation)
-def reset(req: ResetRequest=None):
+def reset(req: Optional[ResetRequest] = Body(default=None)):
     if req is None:
         req = ResetRequest()
     env = get_env(req.task_id)
