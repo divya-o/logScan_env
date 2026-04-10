@@ -15,9 +15,10 @@ from openai import OpenAI
 # cconfig - read from required competition environment variables
 
 def get_config():
-    api_base_url=os.environ.get("API_BASE_URL" )
-    model_name= os.environ.get ("MODEL_NAME")
-    hf_token= os.environ.get("HF_TOKEN")
+    api_base_url=os.environ.get("API_BASE_URL", "https://router.huggingface.co/v1" )
+    model_name= os.environ.get ("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct") 
+    hf_token= os.environ.get("HF_TOKEN") or os.getenv("OPENAI_API_KEY") or os.getenv("API_KEY")
+
 
     missing= [k for k, v in[
         ("API_BASE_URL",api_base_url),
