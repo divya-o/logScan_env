@@ -138,7 +138,7 @@ def grade_step(action, ground_truth, state):     #score one agent action.
         feedback += " | max_steps reached"
 
     total = round(a_score + c_score + rc_score + fix_score + step_pen + extra_pen, 4)
-    total = max(-1.0, min(1.0, total))
+    total = max(-0.99, min(0.99, total))
 
     return StepReward(
         total=total,
@@ -165,7 +165,7 @@ def grade_episode(scenario_id, task_id, best, steps, max_steps):
     if raw >= 0.8 and steps <= max_steps // 2:
         bonus = min(0.1, 1.0 - raw)
 
-    total = round(min(1.0, raw + bonus), 4)
+    total = round(min(0.99, max(0.01, raw + bonus)), 4)
 
     return EpisodeResult(
         task_id=task_id,
