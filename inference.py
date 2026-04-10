@@ -153,8 +153,8 @@ def run_episode (task_id, episode_num, client, model_name,env_base_url ) :      
     except Exception as e:
         # Cannot even reset — log and return zero score
         log_step(0, "reset_failed", 0.0, True, error=str(e))
-        log_end(task_id, episode_num, 0.0, 0, success=False)
-        return {"score": 0.0, "steps": 0, "success": False}
+        log_end(task_id, episode_num, 0.01, 0, success=False)
+        return {"score": 0.01, "steps": 0, "success": False}
 
     history=[]
     step_num=0
@@ -237,7 +237,7 @@ def run_episode (task_id, episode_num, client, model_name,env_base_url ) :      
         log_step(step_num, action_type, step_reward, done, error=step_error)
 
     #  Get final episode score from /grader 
-    final_score=0.0
+    final_score=0.01
     try:
         g=requests.get(
             f"{env_base_url}/grader",
@@ -245,7 +245,7 @@ def run_episode (task_id, episode_num, client, model_name,env_base_url ) :      
             timeout=10,
         )
         if g.status_code == 200:
-            final_score=g.json().get("total_score", 0.0)
+            final_score=max(0.01, min(0.99, raw))
     except Exception:
         # If grader call fails, fall back to estimating from cumulative reward
         final_score=max(0.0, min(0.99, cumulative_reward))
