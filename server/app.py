@@ -56,11 +56,6 @@ def get_env(task_id):
 def health():
     return {"status": "healthy", "version": "1.0.0", "tasks": list(envs.keys())}
 
-# /health
-@app.get("/health")
-def health():
-    return {"status": "healthy", "version": "1.0.0", "tasks": list(envs.keys())}
- 
  
 # /metadata
 @app.get("/metadata")
@@ -277,8 +272,10 @@ def grader(task_id: str = Query(default="easy")):
 
     if result is None:
         raise HTTPException(404, f"No completed episode for '{task_id}'. Call /reset then /step until done=true.")
-    return result
 
+    if "total_score" in result:
+        result["total_score"] = round(max(0.01, min(0.99, result["total_score"])), 4)
+    return result
 
 
 # /baseline - trigger GPT baseline agent
