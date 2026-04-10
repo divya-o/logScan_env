@@ -214,7 +214,7 @@ def tasks():
 
 # /reset
 
-@app.post("/reset", response_model=LogObservation)
+@app.post("/reset")
 async def reset(request: Request):
     try:
         body = await request.json()
