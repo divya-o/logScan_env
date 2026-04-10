@@ -248,9 +248,9 @@ def run_episode (task_id, episode_num, client, model_name,env_base_url ) :      
             final_score=g.json().get("total_score", 0.0)
     except Exception:
         # If grader call fails, fall back to estimating from cumulative reward
-        final_score=max(0.0, min(1.0, cumulative_reward))
+        final_score=max(0.0, min(0.99, cumulative_reward))
 
-    success=final_score > 0.0
+    success=final_score > 0.01
     log_end(task_id, episode_num, final_score, step_num, success)
 
     return {"score": final_score, "steps": step_num, "success": success}
@@ -290,7 +290,7 @@ def run_inference(base_url=None, episodes_per_task=3):
             ep_scores.append(result["score"])
             ep_details.append(result)
 
-        mean=round(sum(ep_scores) / len(ep_scores), 4) if ep_scores else 0.0
+        mean=round(sum(ep_scores) / len(ep_scores), 4) if ep_scores else 0.01
         scores[task_id] =mean
         details[task_id]={
             "mean_score":     mean,
