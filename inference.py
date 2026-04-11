@@ -126,14 +126,11 @@ def log_step(step_num, action_type, reward, done, error=None) :          #print 
 
 
 def log_end(task_id, episode, final_score, steps_taken, success ):               #print [END] block after each episode completes, req. fields: task_id, episode, score, steps, success
+    safe_score = max(0.01, min(0.99, float(final_score)))
     print(
-        f"[END] task_id= {task_id} "
-        f"episode ={episode} "
-        f"score= {final_score:.4f} "
-        f"steps= {steps_taken} "
-        f"success= {str(success).lower()}"
+        f"[END] task={task_id} score={safe_score:.4f} steps={steps_taken}",
+        flush=True
     )
-    sys.stdout.flush()
 
 
 
@@ -335,11 +332,9 @@ if __name__ == "__main__":
     result=run_inference(base_url=env_base_url, episodes_per_task=3)
 
     # Print final scores in standardized format
-    print("\n[SCORES]")
+    print(f"[INFO] overall={result['overall']:.4f}", flush=True)
     for task_id, score in result["scores"].items():
-        bar="#" * int(score * 20)
-        print(f"  task={task_id} score={score:.4f} [{bar:<20}]")
-    print(f"  overall={result['overall']:.4f}")
+        print(f"[INFO] task={task_id} score={score:.4f}", flush=True)
 
     # Save scores file for evaluator
     output={
